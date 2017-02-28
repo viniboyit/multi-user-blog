@@ -1,0 +1,171 @@
+body {
+    position: relative;
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    width: 900px;
+    margin: 0 auto;
+    padding: 10px;
+    color: #333;
+}
+
+
+h2 {
+    font-size: 25px;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+.welcome-header {
+    text-align: center;
+}
+
+img {
+    display: block;
+}
+
+label {
+  display: block;
+  font-size: 22px;
+}
+
+label + label {
+    margin-top: 22px;
+}
+
+input {
+    margin-bottom: 12px;
+}
+
+input[type=text] {
+    width: 400px;
+    font-size: 20px;
+    padding: 3px;
+    font-family: monospace;
+}
+
+textarea {
+  width: 400px;
+  height: 300px;
+  font-size: 17px;
+  font-family: monospace;
+}
+
+input[type=submit] {
+  font-size: 24px;
+}
+
+.login-space {
+    font-size: 13px;
+    color: white;
+    position: absolute;
+    top: 83px;
+    right: 30px;
+}
+
+.login-link {
+    color: white;
+}
+
+.login-link:visited {
+    color: white;
+}
+
+.login-link:hover {
+    text-decoration: underline;
+}
+
+.error {
+    color: red;
+}
+
+.main-title {
+    display: block;
+    color: #222;
+    font-size: 41px;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 6px;
+    text-decoration: none;
+}
+
+.sub-title {
+    display: block;
+    color: #222;
+    font-size: 30px;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 30px;
+    text-decoration: none;
+}
+
+.post + .post {
+    margin-top: 16px;
+}
+
+.post-heading {
+    position: relative;
+    border-bottom: 4px solid #666;
+}
+
+.post-title {
+    font-size: 23px;
+    font-weight: bold;
+
+    text-decoration: none;
+    color: #333;
+}
+
+.post-title:visited {
+    color: #333;
+}
+
+.post-date {
+    position: absolute;
+    right: 0px;
+    bottom: 0px;
+    color: #999;
+
+}
+
+.post-content {
+    margin-top: 5px;
+}
+
+.age {
+    position: absolute;
+    bottom: 0px;
+    right: 0px;
+    color: gray;
+    font-size: 12px;
+}
+
+.navigation {
+    list-style-type: none;
+    margin-bottom: 40 px;
+    padding: 0;
+    overflow: hidden;
+    background-color: black;
+}
+
+.nav-item {
+    float: left;
+}
+
+.nav-item a {
+    display: block;
+    color: white;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+}
+
+.nav-item a:hover {
+    background-color: white;
+    color: #333;
+}
+
+.like {
+    background-color: blue;
+    color: white;
+}
+
