@@ -173,37 +173,41 @@ class NewPostHandler(appHandler):
     def post(self):
         if not self.user:
             self.redirect("/blog")
-        subject = self.request.get("subject")
-        content = self.request.get("content")
-        if subject and content:
-            post = bloginfo(parent=blog_key(), subject=subject,
-                            content=content,
-                            creator=self.user)
-            post.put()
-            self.redirect("/blog/%s" % str(post.key.id()))
         else:
-            error = "you need both a subject and content"
-            self.render("newpost.html", subject=subject, content=content,
-                        error=error)
+            subject = self.request.get("subject")
+            content = self.request.get("content")
+            if subject and content:
+                post = bloginfo(parent=blog_key(), subject=subject,
+                                content=content,
+                                creator=self.user)
+                post.put()
+                self.redirect("/blog/%s" % str(post.key.id()))
+            else:
+                error = "you need both a subject and content"
+                self.render("newpost.html", subject=subject, content=content,
+                            error=error)
 
 
 class PostHandler(appHandler):
 
     def get(self, post_id):
-        key = ndb.Key('bloginfo', int(post_id), parent=blog_key())
-        post = key.get()
+        if post_id:
+            key = ndb.Key('bloginfo', int(post_id), parent=blog_key())
+            post = key.get()
 
-        """Added comment and like apps to post"""
-        comments = Comment.gql("WHERE post_id = %s ORDER BY time_created DESC"
-                               % int(post_id))
-        liked = None
-        if self.user:
-            liked = Like.gql("WHERE post_id = :1 AND creator.username = :2",
-                             int(post_id), self.user.username).get()
-        if not post:
-            self.error(404)
-            return
-        self.render("blogpost.html", post=post, comments=comments, liked=liked)
+            """Added comment and like apps to post"""
+            comments = Comment.gql("WHERE post_id = %s ORDER BY time_created DESC"
+                                   % int(post_id))
+            liked = None
+            if self.user:
+                liked = Like.gql("WHERE post_id = :1 AND creator.username = :2",
+                                 int(post_id), self.user.username).get()
+            if not post:
+                self.error(404)
+                return
+            self.render("blogpost.html", post=post, comments=comments, liked=liked)
+        else:
+            self.redirect("/blog")
 
     def post(self, post_id):
         key = ndb.Key('bloginfo', int(post_id), parent=blog_key())
@@ -265,19 +269,20 @@ class EditPostHandler(appHandler):
         post_id = self.request.get("post")
         key = ndb.Key('bloginfo', int(post_id), parent=blog_key())
         post = key.get()
-        if post and post.creator.username == self.user.username:
-            subject = self.request.get("subject")
-            content = self.request.get("content")
-            if subject and content:
-                post.subject = subject
-                post.content = content
-                post.put()
-                time.sleep(0.1)
-                self.redirect("/blog")
-            else:
-                error = "Subject and Content fields both required"
-                self.render("editpost.html", subject=subject, content=content,
-                            error=error)
+        if self.user:
+            if post and post.creator.username == self.user.username:
+                subject = self.request.get("subject")
+                content = self.request.get("content")
+                if subject and content:
+                    post.subject = subject
+                    post.content = content
+                    post.put()
+                    time.sleep(0.1)
+                    self.redirect("/blog")
+                else:
+                    error = "Subject and Content fields both required"
+                    self.render("editpost.html", subject=subject, content=content,
+                                error=error)
         else:
             self.redirect("/blog")
 
@@ -300,9 +305,10 @@ class DeletePostHandler(appHandler):
         post_id = self.request.get("post")
         key = ndb.Key('bloginfo', int(post_id), parent=blog_key())
         post = key.get()
-        if post and post.creator.username == self.user.username:
-            key.delete()
-            time.sleep(0.1)
+        if self.user:
+            if post and post.creator.username == self.user.username:
+                key.delete()
+                time.sleep(0.1)
         self.redirect("/blog")
 
 
@@ -359,8 +365,9 @@ class DeleteCommentHandler(appHandler):
         comment_id = self.request.get("comment")
         key = ndb.Key('Comment', int(comment_id))
         comment = key.get()
-        if comment and comment.creator.username == self.user.username:
-            post_id = comment.post_id
-            key.delete()
-            time.sleep(0.2)
+        if self.user:
+            if comment and comment.creator.username == self.user.username:
+                post_id = comment.post_id
+                key.delete()
+                time.sleep(0.2)
         self.redirect("/blog/%s" % post_id)
