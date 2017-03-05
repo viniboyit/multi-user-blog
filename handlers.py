@@ -17,8 +17,8 @@ from google.appengine.ext import ndb
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 
-jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir),
-                               autoescape = True)
+jinja_env = jinja2.Environment(loader=jinja2.FileSystemLoader(template_dir),
+                               autoescape=True)
 
 
 class appHandler(webapp2.RequestHandler):
@@ -52,9 +52,11 @@ class appHandler(webapp2.RequestHandler):
         username = self.read_secure_cookie('user')
         self.user = User.gql("WHERE username = '%s'" % username).get()
 
+
 class MainHandler(appHandler):
     def get(self):
         self.render("index.html")
+
 
 class Rot13Handler(appHandler):
     def get(self):
@@ -64,7 +66,8 @@ class Rot13Handler(appHandler):
         text = self.request.get("text")
         if text:
             text = codecs.encode(text, 'rot_13')
-        self.render('rot13.html', text = text)
+        self.render('rot13.html', text=text)
+
 
 class SignupHandler(appHandler):
     def get(self):
@@ -84,33 +87,37 @@ class SignupHandler(appHandler):
         user = User.gql("WHERE username = '%s'" % username).get()
         if user:
             exist_error = True
-            self.render("signup.html", exist_error = exist_error,
-                                       username = username,
-                                       email = email)
+            self.render("signup.html", exist_error=exist_error,
+                        username=username, email=email)
         else:
             if not username or not valid_username(username):
-                user_error = True 
+                user_error = True
             if not password or not verify or not valid_password(password):
-                pwd_error = True 
+                pwd_error = True
             if password != verify:
-                verify_error = True 
+                verify_error = True
             if email and not valid_email(email):
-                email_error = True 
+                email_error = True
 
             if user_error or pwd_error or verify_error or email_error:
-                self.render("signup.html", user_error = user_error,
-                                           pwd_error = pwd_error,
-                                           verify_error = verify_error,
-                                           email_error = email_error,
-                                           username = username,
-                                           email = email)
+                self.render("signup.html", user_error=user_error,
+                            pwd_error=pwd_error,
+                            verify_error=verify_error,
+                            email_error=email_error,
+                            username=username,
+                            email=email)
             else:
-                user = User(username = username, pwd_hash = make_pw_hash(username, password), email = email)
+                user = User(username=username,
+                            pwd_hash=make_pw_hash(username, password),
+                            email=email)
                 user.put()
                 user_cookie = make_secure_val(str(username))
-                self.response.headers.add_header("Set-Cookie", "user=%s; Path=/" % user_cookie)
+                self.response.headers.add_header(
+                    "Set-Cookie",
+                    "user=%s; Path=/" % user_cookie)
                 time.sleep(0.1)
                 self.redirect("/welcome")
+
 
 class WelcomeHandler(appHandler):
     def get(self):
@@ -118,11 +125,12 @@ class WelcomeHandler(appHandler):
         if user:
             username = check_secure_val(user)
             if username:
-                self.render("welcome.html", username = username)
+                self.render("welcome.html", username=username)
             else:
                 self.redirect('/signup')
         else:
             self.redirect('/signup')
+
 
 class LoginHandler(appHandler):
     def get(self):
@@ -134,21 +142,25 @@ class LoginHandler(appHandler):
         user = User.gql("WHERE username = '%s'" % username).get()
         if user and valid_pw(username, password, user.pwd_hash):
             user_cookie = make_secure_val(str(username))
-            self.response.headers.add_header("Set-Cookie", "user=%s; Path=/" % user_cookie)
+            self.response.headers.add_header("Set-Cookie",
+                                             "user=%s; Path=/" % user_cookie)
             self.redirect("/welcome")
         else:
             error = "Not a valid username or password"
-            self.render("login.html", username = username, error = error)
+            self.render("login.html", username=username, error=error)
+
 
 class LogoutHandler(appHandler):
     def get(self):
         self.response.headers.add_header("Set-Cookie", "user=; Path=/")
         self.redirect("/signup")
 
+
 class BlogHandler(appHandler):
     def get(self):
         posts = bloginfo.gql("ORDER BY time_created DESC")
-        self.render("blog.html", posts = posts)
+        self.render("blog.html", posts=posts)
+
 
 class NewPostHandler(appHandler):
     """Creates post"""
@@ -164,29 +176,35 @@ class NewPostHandler(appHandler):
         subject = self.request.get("subject")
         content = self.request.get("content")
         if subject and content:
-            post = bloginfo(parent = blog_key(), subject = subject, content = content, creator = self.user)
+            post = bloginfo(parent=blog_key(), subject=subject,
+                            content=content,
+                            creator=self.user)
             post.put()
             self.redirect("/blog/%s" % str(post.key.id()))
         else:
             error = "you need both a subject and content"
-            self.render("newpost.html", subject = subject, content = content, error = error)
+            self.render("newpost.html", subject=subject, content=content,
+                        error=error)
+
 
 class PostHandler(appHandler):
-    
+
     def get(self, post_id):
         key = ndb.Key('bloginfo', int(post_id), parent=blog_key())
         post = key.get()
 
         """Added comment and like apps to post"""
-        comments = Comment.gql("WHERE post_id = %s ORDER BY time_created DESC" % int(post_id))
+        comments = Comment.gql("WHERE post_id = %s ORDER BY time_created DESC"
+                               % int(post_id))
         liked = None
         if self.user:
-            liked = Like.gql("WHERE post_id = :1 AND creator.username = :2", int(post_id), self.user.username).get()
+            liked = Like.gql("WHERE post_id = :1 AND creator.username = :2",
+                             int(post_id), self.user.username).get()
         if not post:
             self.error(404)
             return
-        self.render("blogpost.html", post = post, comments = comments, liked = liked)
-    
+        self.render("blogpost.html", post=post, comments=comments, liked=liked)
+
     def post(self, post_id):
         key = ndb.Key('bloginfo', int(post_id), parent=blog_key())
         post = key.get()
@@ -196,37 +214,40 @@ class PostHandler(appHandler):
             """User liked"""
             if post and self.user:
                 post.likes += 1
-                like = Like(post_id = int(post_id), creator = self.user)
+                like = Like(post_id=int(post_id), creator=self.user)
                 like.put()
                 post.put()
                 time.sleep(0.2)
             self.redirect("/blog/%s" % post_id)
         elif self.request.get("unlike"):
-            
+
             """User unliked"""
             if post and self.user:
                 post.likes -= 1
-                like = Like.gql("WHERE post_id = :1 AND creator.username = :2", int(post_id), self.user.username).get()
+                like = Like.gql("WHERE post_id = :1 AND creator.username = :2",
+                                int(post_id), self.user.username).get()
                 key = like.key
                 key.delete()
                 post.put()
                 time.sleep(0.2)
             self.redirect("/blog/%s" % post_id)
-        
+
         else:
-            
+
             """User commented"""
             content = self.request.get("content")
             if content:
-                comment = Comment(content = str(content), creator = self.user, post_id = int(post_id))
+                comment = Comment(content=str(content), creator=self.user,
+                                  post_id=int(post_id))
                 comment.put()
                 time.sleep(0.1)
                 self.redirect("/blog/%s" % post_id)
             else:
-                self.render("bloginfo.html", post = post)
+                self.render("bloginfo.html", post=post)
+
 
 class EditPostHandler(appHandler):
-    
+
     def get(self):
         if self.user:
             post_id = self.request.get("post")
@@ -235,7 +256,8 @@ class EditPostHandler(appHandler):
             if not post:
                 self.error(404)
                 return
-            self.render("editpost.html", subject = post.subject, content = post.content)
+            self.render("editpost.html", subject=post.subject,
+                        content=post.content)
         else:
             self.redirect("/login")
 
@@ -254,12 +276,14 @@ class EditPostHandler(appHandler):
                 self.redirect("/blog")
             else:
                 error = "Subject and Content fields both required"
-                self.render("editpost.html", subject = subject, content = content, error = error)
+                self.render("editpost.html", subject=subject, content=content,
+                            error=error)
         else:
             self.redirect("/blog")
 
+
 class DeletePostHandler(appHandler):
-    
+
     def get(self):
         if self.user:
             post_id = self.request.get("post")
@@ -268,7 +292,7 @@ class DeletePostHandler(appHandler):
             if not post:
                 self.error(404)
                 return
-            self.render("deletepost.html", post = post)
+            self.render("deletepost.html", post=post)
         else:
             self.redirect("/login")
 
@@ -281,8 +305,9 @@ class DeletePostHandler(appHandler):
             time.sleep(0.1)
         self.redirect("/blog")
 
+
 class EditCommentHandler(appHandler):
-    
+
     def get(self):
         if self.user:
             comment_id = self.request.get("comment")
@@ -291,7 +316,8 @@ class EditCommentHandler(appHandler):
             if not comment:
                 self.error(404)
                 return
-            self.render("editcomment.html", content = comment.content, post_id = comment.post_id)
+            self.render("editcomment.html", content=comment.content,
+                        post_id=comment.post_id)
         else:
             self.redirect("/login")
 
@@ -299,21 +325,24 @@ class EditCommentHandler(appHandler):
         comment_id = self.request.get("comment")
         key = ndb.Key('Comment', int(comment_id))
         comment = key.get()
-        if comment and comment.creator.username == self.user.username:
-            content = self.request.get("content")
-            if content:
-                comment.content = content
-                comment.put()
-                time.sleep(0.1)
-                self.redirect("/blog/%s" % comment.post_id)
-            else:
-                error = "you need both a subject and content"
-                self.render("editcomment.html", content = content, post_id = comment.post_id, error = error)
+        if self.user:
+            if comment and comment.creator.username == self.user.username:
+                content = self.request.get("content")
+                if content:
+                    comment.content = content
+                    comment.put()
+                    time.sleep(0.1)
+                    self.redirect("/blog/%s" % comment.post_id)
+                else:
+                    error = "you need both a subject and content"
+                    self.render("editcomment.html", content=content,
+                                post_id=comment.post_id, error=error)
         else:
             self.redirect("/blog/%s" % comment.post_id)
 
+
 class DeleteCommentHandler(appHandler):
-    
+
     def get(self):
         if self.user:
             comment_id = self.request.get("comment")
@@ -322,7 +351,7 @@ class DeleteCommentHandler(appHandler):
             if not comment:
                 self.error(404)
                 return
-            self.render("deletecomment.html", comment = comment)
+            self.render("deletecomment.html", comment=comment)
         else:
             self.redirect("/login")
 
