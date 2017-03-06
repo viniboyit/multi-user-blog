@@ -212,42 +212,48 @@ class PostHandler(appHandler):
     def post(self, post_id):
         key = ndb.Key('bloginfo', int(post_id), parent=blog_key())
         post = key.get()
+        if post: 
 
-        if self.request.get("like"):
+	        if self.request.get("like"):
 
-            """User liked"""
-            if post and self.user:
-                post.likes += 1
-                like = Like(post_id=int(post_id), creator=self.user)
-                like.put()
-                post.put()
-                time.sleep(0.2)
-            self.redirect("/blog/%s" % post_id)
-        elif self.request.get("unlike"):
+	            """User liked"""
+	            if post and self.user!=post.creator:
+	                post.likes += 1
+	                like = Like(post_id=int(post_id), creator=self.user)
+	                like.put()
+	                post.put()
+	                time.sleep(0.2)
+	            self.redirect("/blog/%s" % post_id)
 
-            """User unliked"""
-            if post and self.user:
-                post.likes -= 1
-                like = Like.gql("WHERE post_id = :1 AND creator.username = :2",
-                                int(post_id), self.user.username).get()
-                key = like.key
-                key.delete()
-                post.put()
-                time.sleep(0.2)
-            self.redirect("/blog/%s" % post_id)
+	        elif self.request.get("unlike"):
 
-        else:
+	            """User unliked"""
+	            if post and self.user!=post.creator:
+	                post.likes -= 1
+	                like = Like.gql("WHERE post_id = :1 AND creator.username = :2",
+	                                int(post_id), self.user.username).get()
+	                key = like.key
+	                if key:
+		                key.delete()
+		                post.put()
+		                time.sleep(0.2)
+	            self.redirect("/blog/%s" % post_id)
 
-            """User commented"""
-            content = self.request.get("content")
-            if content:
-                comment = Comment(content=str(content), creator=self.user,
-                                  post_id=int(post_id))
-                comment.put()
-                time.sleep(0.1)
-                self.redirect("/blog/%s" % post_id)
-            else:
-                self.render("bloginfo.html", post=post)
+	        else:
+
+	            """User commented"""
+	            content = self.request.get("content")
+	            if content:
+	                comment = Comment(content=str(content), creator=self.user,
+	                                  post_id=int(post_id))
+	                comment.put()
+	                time.sleep(0.1)
+	                self.redirect("/blog/%s" % post_id)
+	            else:
+	                self.render("bloginfo.html", post=post)
+	    else: 
+	    	self.redirect("/blog")
+
 
 
 class EditPostHandler(appHandler):
