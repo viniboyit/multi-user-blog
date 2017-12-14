@@ -2,8 +2,7 @@ Multi User Blog Project
 
 Author: Vince
 
-The live version of the project is set up at:
-http://williamyblog.appspot.com/blog
+Live demo on https://ferrous-purpose-159412.appspot.com/
 
 I have used Google App Engine to set up this project. If you want to run the code, please first get Google App Engine SDK for Python:
 
@@ -20,6 +19,5 @@ The local development server is now running and listening for requests on port 8
 Visit http://localhost:8080/ in your web browser to view the app.
 
 
-Live demo on https://ferrous-purpose-159412.appspot.com/
 
 
